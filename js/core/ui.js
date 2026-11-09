@@ -1,136 +1,88 @@
-// UI helpers: toasts, modals, confirm dialogs, pickers, loading & empty states.
-import { esc, debounce } from './utils.js';
+// UI helpers: toasts, modals, confirm dialogs, empty states, avatars, count-up numbers. Plain DOM + Bootstrap.
+import { esc } from './utils.js';
+import { t, fmtInt } from './i18n.js';
+import { CONFIG } from '../config.js';
 
-const $ = window.jQuery;
+const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Message for an error: a translated text for known codes, otherwise the error's own message.
+export function errorText(err) {
+  const key = `err.${err?.code}`;
+  const s = t(key, { phone: CONFIG.SUPPORT_PHONE });
+  if (s !== key) return s;
+  return err?.message || t('app.error');
+}
 
 export function toast(message, type = 'success', ms = 3200) {
   const icons = { success: 'check-circle-fill', danger: 'x-octagon-fill', warning: 'exclamation-triangle-fill', info: 'info-circle-fill' };
-  const $t = $(`<div class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex"><div class="toast-body"><i class="bi bi-${icons[type] || icons.info} me-2"></i>${esc(message)}</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div></div>`);
-  $('#toast-container').append($t);
-  const t = new bootstrap.Toast($t[0], { delay: ms });
-  $t.on('hidden.bs.toast', () => $t.remove());
-  t.show();
+  const el = document.createElement('div');
+  el.className = `toast align-items-center text-bg-${type} border-0 toast-anim`;
+  el.setAttribute('role', 'status');
+  el.innerHTML = `<div class="d-flex"><div class="toast-body"><i class="bi bi-${icons[type] || icons.info} me-2"></i>${esc(message)}</div>
+    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="${esc(t('ui.close'))}"></button></div>`;
+  document.getElementById('toast-container').append(el);
+  el.addEventListener('hidden.bs.toast', () => el.remove());
+  new window.bootstrap.Toast(el, { delay: ms }).show();
 }
-export const toastError = (err) => {
+
+export function toastError(err) {
   console.error(err);
-  toast(err?.message || String(err), 'danger', 5000);
-};
+  toast(errorText(err), 'danger', 5000);
+}
 
-export function modal({ title, body = '', footer = null, size = '', scrollable = true, fullscreenMobile = true, static: isStatic = false }) {
-  const $m = $(`<div class="modal fade" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog ${size ? 'modal-' + size : ''} ${scrollable ? 'modal-dialog-scrollable' : ''} ${fullscreenMobile ? 'modal-fullscreen-sm-down' : ''} modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header py-2"><h5 class="modal-title">${esc(title)}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
-        <div class="modal-body">${body}</div>
-        ${footer !== null ? `<div class="modal-footer py-2">${footer}</div>` : ''}
-      </div></div></div>`);
-  $('body').append($m);
-  const bs = new bootstrap.Modal($m[0], isStatic ? { backdrop: 'static', keyboard: false } : {});
-  const closed = new Promise((res) => $m.on('hidden.bs.modal', () => { bs.dispose(); $m.remove(); res(); }));
+// Bootstrap modal. Returns { el, close, closed (promise), bs }.
+export function modal({ title, body = '', footer = '', size = '', fullscreenMobile = true, className = '' }) {
+  const el = document.createElement('div');
+  el.className = `modal fade ${className}`;
+  el.tabIndex = -1;
+  el.innerHTML = `<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable ${size ? 'modal-' + size : ''} ${fullscreenMobile ? 'modal-fullscreen-sm-down' : ''}">
+    <div class="modal-content">
+      <div class="modal-header py-3"><h2 class="modal-title h5">${esc(title)}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="${esc(t('ui.close'))}"></button></div>
+      <div class="modal-body">${body}</div>
+      ${footer ? `<div class="modal-footer py-2">${footer}</div>` : ''}
+    </div></div>`;
+  document.body.append(el);
+  const bs = new window.bootstrap.Modal(el);
+  const closed = new Promise((resolve) => el.addEventListener('hidden.bs.modal', () => { bs.dispose(); el.remove(); resolve(); }, { once: true }));
   bs.show();
-  return { $el: $m, close: () => bs.hide(), closed, bs };
+  return { el, close: () => bs.hide(), closed, bs };
 }
 
-// Form dialog. onSubmit receives (values, $el); return a value to close, throw to show an error.
-export function formModal({ title, body, submitLabel = 'Save', submitClass = 'btn-primary', size = '', onSubmit, onShown }) {
-  return new Promise((resolve) => {
-    let result = null;
-    const m = modal({
-      title, size,
-      body: `<form novalidate autocomplete="off">${body}<div class="alert alert-danger py-2 small d-none form-error mt-3 mb-0"></div><button type="submit" class="d-none"></button></form>`,
-      footer: `<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-               <button type="button" class="btn ${submitClass} btn-submit">${esc(submitLabel)}</button>`,
-    });
-    const $f = m.$el.find('form');
-    m.$el.on('shown.bs.modal', () => { onShown ? onShown(m.$el) : m.$el.find('input,select,textarea').filter(':visible').first().trigger('focus'); });
-    let busy = false;
-    const submit = async (e) => {
-      e?.preventDefault();
-      if (busy) return;
-      busy = true;
-      const $btn = m.$el.find('.btn-submit').prop('disabled', true);
-      m.$el.find('.form-error').addClass('d-none');
-      try {
-        const values = Object.fromEntries(new FormData($f[0]).entries());
-        $f.find('input[type=checkbox]').each(function () { values[this.name] = this.checked; });
-        const r = await onSubmit(values, m.$el);
-        if (r !== undefined && r !== false) { result = r; m.close(); }
-      } catch (err) {
-        console.warn(err);
-        m.$el.find('.form-error').text(err.message || String(err)).removeClass('d-none');
-      } finally { busy = false; $btn.prop('disabled', false); }
-    };
-    $f.on('submit', submit);
-    m.$el.find('.btn-submit').on('click', submit);
-    m.closed.then(() => resolve(result));
-  });
-}
-
-export function confirmDialog(message, { title = 'Please confirm', okLabel = 'Confirm', okClass = 'btn-primary', html = false } = {}) {
+export function confirmDialog(message, { title = t('ui.confirm'), okLabel = t('btn.confirm'), danger = false } = {}) {
   return new Promise((resolve) => {
     let ok = false;
     const m = modal({
-      title, fullscreenMobile: false, scrollable: false,
-      body: html ? message : `<p class="mb-0">${esc(message)}</p>`,
-      footer: `<button class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn ${okClass} btn-ok">${esc(okLabel)}</button>`,
+      title, size: 'sm', fullscreenMobile: false,
+      body: `<p class="mb-0">${esc(message)}</p>`,
+      footer: `<button class="btn btn-light" data-bs-dismiss="modal">${esc(t('btn.cancel'))}</button>
+               <button class="btn ${danger ? 'btn-danger' : 'btn-primary'} btn-ok">${esc(okLabel)}</button>`,
     });
-    m.$el.find('.btn-ok').on('click', () => { ok = true; m.close(); });
+    m.el.querySelector('.btn-ok').addEventListener('click', () => { ok = true; m.close(); });
     m.closed.then(() => resolve(ok));
   });
 }
 
-// Searchable list picker. search(q) => [{id, title, subtitle, right, value}]
-export function pick({ title, search, noneLabel = null, placeholder = 'Search…', addNew = null }) {
-  return new Promise((resolve) => {
-    let result; // undefined = cancelled
-    const m = modal({
-      title, size: 'md',
-      body: `<input type="search" class="form-control form-control-lg mb-2 pick-q" placeholder="${esc(placeholder)}" autocomplete="off">
-        ${addNew ? `<button class="btn btn-outline-primary w-100 mb-2 pick-add"><i class="bi bi-plus-lg me-1"></i>${esc(addNew.label)}</button>` : ''}
-        ${noneLabel ? `<button class="list-group-item list-group-item-action rounded border mb-2 w-100 text-start pick-none"><i class="bi bi-dash-circle me-2"></i>${esc(noneLabel)}</button>` : ''}
-        <div class="list-group pick-list"></div>`,
-    });
-    let items = [];
-    const render = async () => {
-      items = await search(m.$el.find('.pick-q').val().trim());
-      m.$el.find('.pick-list').html(items.length ? items.map((it, i) => `
-        <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2" data-i="${i}">
-          <div class="text-truncate me-2"><div class="fw-semibold text-truncate">${esc(it.title)}</div>${it.subtitle ? `<div class="small text-body-secondary text-truncate">${esc(it.subtitle)}</div>` : ''}</div>
-          ${it.right ? `<div class="small text-nowrap">${esc(it.right)}</div>` : ''}</button>`).join('') : emptyState('No matches found', 'search'));
-    };
-    m.$el.on('input', '.pick-q', debounce(render, 150));
-    m.$el.on('keydown', '.pick-q', (e) => { if (e.key === 'Enter' && items.length) { e.preventDefault(); result = items[0]; m.close(); } });
-    m.$el.on('click', '.pick-list [data-i]', function () { result = items[+this.dataset.i]; m.close(); });
-    m.$el.on('click', '.pick-none', () => { result = null; m.close(); });
-    let adding = false;
-    m.$el.on('click', '.pick-add', async () => {
-      adding = true;
-      m.close(); await m.closed;
-      const created = await addNew.create();
-      resolve(created || undefined);
-    });
-    m.$el.on('shown.bs.modal', () => m.$el.find('.pick-q').trigger('focus'));
-    render();
-    m.closed.then(() => { if (!adding) resolve(result); });
-  });
+export function emptyState(icon, title, sub = '', action = '') {
+  return `<div class="empty-state text-center">
+    <div class="es-icon"><i class="bi bi-${icon}"></i></div>
+    <div class="fw-semibold fs-5">${esc(title)}</div>
+    ${sub ? `<div class="text-body-secondary mt-1">${esc(sub)}</div>` : ''}
+    ${action ? `<div class="mt-3">${action}</div>` : ''}</div>`;
 }
 
-export function emptyState(text, icon = 'inbox', action = '') {
-  return `<div class="empty-state text-center text-body-secondary"><div class="es-icon"><i class="bi bi-${icon}"></i></div><div class="fw-medium">${esc(text)}</div>${action}</div>`;
-}
 export function errorState(err) {
-  return `<div class="alert alert-danger m-3"><i class="bi bi-exclamation-octagon me-2"></i>${esc(err?.message || err)}</div>`;
+  return `<div class="alert alert-danger m-3"><i class="bi bi-exclamation-octagon me-2"></i>${esc(errorText(err))}</div>`;
 }
-// Skeleton placeholder while a page loads (text is kept for screen readers).
-export const spinner = (text = 'Loading…') => `<div class="skeleton py-2" role="status" aria-label="${esc(text)}">
-  <div class="skel" style="height:28px;width:40%"></div><div class="skel" style="height:110px"></div>
-  <div class="d-flex gap-2"><div class="skel flex-fill" style="height:70px"></div><div class="skel flex-fill" style="height:70px"></div></div>
-  <div class="skel" style="height:220px"></div></div>`;
 
-// Coloured initials avatar; the colour is derived from the name so it stays the same everywhere.
+export function skeleton() {
+  return `<div class="skeleton" role="status" aria-label="${esc(t('app.loading'))}">
+    <div class="skel" style="height:34px;width:38%"></div>
+    <div class="d-flex gap-3 mt-3"><div class="skel flex-fill" style="height:104px"></div><div class="skel flex-fill" style="height:104px"></div><div class="skel flex-fill d-none d-md-block" style="height:104px"></div></div>
+    <div class="skel mt-3" style="height:240px"></div></div>`;
+}
+
+// Coloured initials; the colour is derived from the name so it stays the same everywhere.
 const TINTS = ['indigo', 'violet', 'green', 'amber', 'cyan', 'pink', 'red', 'slate'];
 export function tintFor(name) {
   let h = 0;
@@ -141,19 +93,22 @@ export function initials(name) {
   const words = String(name || '?').trim().split(/\s+/).filter(Boolean);
   return ((words[0]?.[0] || '?') + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
 }
-export const avatar = (name, cls = '') => `<div class="avatar tint-${tintFor(name)} ${cls}" aria-hidden="true">${esc(initials(name))}</div>`;
+export function avatar(name, photo = '', cls = '') {
+  if (photo) return `<img class="avatar ${cls}" src="${esc(photo)}" alt="">`;
+  return `<div class="avatar tint-${tintFor(name)} ${cls}" aria-hidden="true">${esc(initials(name))}</div>`;
+}
 
-// Animate numbers in [data-count] elements from 0 to their value (formatted by fmt). Skipped for reduced motion.
-export function countUp(root, fmt) {
-  const els = root.querySelectorAll('[data-count]');
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  els.forEach((el) => {
+// Animates [data-count] numbers from 0 to their value. Formatting uses fmtInt; skipped for reduced motion.
+export function countUp(root = document) {
+  root.querySelectorAll('[data-count]').forEach((el) => {
     const end = Number(el.dataset.count) || 0;
-    if (reduce || !end) { el.textContent = fmt(end, el); return; }
-    const t0 = performance.now(); const dur = 700;
-    const step = (t) => {
-      const p = Math.min(1, (t - t0) / dur); const e = 1 - Math.pow(1 - p, 3);
-      el.textContent = fmt(p < 1 ? end * e : end, el);
+    const suffix = el.dataset.suffix || '';
+    if (reduceMotion() || !end) { el.textContent = fmtInt(end) + suffix; return; }
+    const t0 = performance.now(); const dur = 900;
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmtInt(end * e) + suffix;
       if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
@@ -161,32 +116,19 @@ export function countUp(root, fmt) {
 }
 
 let loadingCount = 0;
-export function loading(on, text = 'Please wait…') {
+export function loading(on, text = t('ui.wait')) {
   loadingCount = Math.max(0, loadingCount + (on ? 1 : -1));
-  $('#loading-overlay').toggleClass('d-none', loadingCount === 0).find('.loading-text').text(text);
-}
-export async function withLoading(fn, text) {
-  loading(true, text);
-  try { return await fn(); } finally { loading(false); }
+  const overlay = document.getElementById('loading-overlay');
+  overlay.classList.toggle('d-none', loadingCount === 0);
+  overlay.querySelector('.loading-text').textContent = text;
 }
 
-export function pageHeader(title, actions = '', back = null) {
-  return `<div class="page-header d-flex align-items-center gap-2 mb-3">
-    ${back ? `<a href="${esc(back)}" class="btn btn-light btn-sm" aria-label="Back"><i class="bi bi-arrow-left"></i></a>` : ''}
-    <h1 class="h5 mb-0 flex-grow-1 text-truncate">${esc(title)}</h1>
-    <div class="d-flex gap-2 flex-shrink-0">${actions}</div></div>`;
-}
-
-// Build a <select> options list.
-export const options = (list, selected, valueKey = 'id', labelKey = 'name') =>
-  list.map((o) => `<option value="${esc(o[valueKey])}" ${String(o[valueKey]) === String(selected) ? 'selected' : ''}>${esc(o[labelKey])}</option>`).join('');
-
-export function beep() {
-  try {
-    const ctx = beep.ctx || (beep.ctx = new (window.AudioContext || window.webkitAudioContext)());
-    const o = ctx.createOscillator(); const g = ctx.createGain();
-    o.frequency.value = 1400; g.gain.value = 0.08;
-    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.08);
-  } catch { /* audio unavailable */ }
-  if (navigator.vibrate) navigator.vibrate(40);
+export function pageHeader(title, { sub = '', actions = '', back = null } = {}) {
+  return `<header class="page-head">
+    ${back ? `<a href="${esc(back)}" class="btn btn-icon" aria-label="${esc(t('ui.back'))}"><i class="bi bi-arrow-left-short"></i></a>` : ''}
+    <div class="flex-grow-1 min-w-0">
+      <h1 class="page-title text-truncate">${esc(title)}</h1>
+      ${sub ? `<div class="page-sub text-truncate">${esc(sub)}</div>` : ''}
+    </div>
+    <div class="d-flex gap-2 flex-wrap justify-content-end">${actions}</div></header>`;
 }

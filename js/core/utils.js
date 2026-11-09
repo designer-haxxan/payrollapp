@@ -7,7 +7,6 @@ export const uuid = () =>
   }));
 
 export const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
-export const round3 = (n) => Math.round((Number(n) + Number.EPSILON) * 1000) / 1000;
 
 export function num(v, def = 0) {
   if (v === null || v === undefined || v === '') return def;
@@ -21,27 +20,29 @@ export function localDate(d = new Date()) {
 }
 export const today = () => localDate();
 export const nowISO = () => new Date().toISOString();
-export function monthStart(dateStr = today()) { return dateStr.slice(0, 8) + '01'; }
-export function fmtDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr.length === 10 ? dateStr + 'T00:00:00' : dateStr);
-  return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
-}
-export function fmtDateTime(iso) {
-  if (!iso) return '';
-  return new Date(iso).toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-export function fmtTime(iso) {
-  return iso ? new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '';
-}
+export const currentMonth = () => today().slice(0, 7);
 
-const moneyFmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const qtyFmt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 });
-export const fmtNum = (n) => moneyFmt.format(round2(n || 0));
-export const fmtQty = (n) => qtyFmt.format(round3(n || 0));
+// 'YYYY-MM' helpers
+export const monthOf = (dateStr) => String(dateStr || '').slice(0, 7);
+export function addMonths(month, delta) {
+  const [y, m] = month.split('-').map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+}
+export function daysInMonth(month) {
+  const [y, m] = month.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
+}
+// 0 = Sunday … 6 = Saturday
+export function weekdayOf(month, day) {
+  const [y, m] = month.split('-').map(Number);
+  return new Date(y, m - 1, day).getDay();
+}
 
 const ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ESC_MAP[c]);
+
+export const clean = (s, max = 200) => String(s ?? '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max);
 
 export function debounce(fn, ms = 200) {
   let t;
@@ -64,29 +65,10 @@ export function toCSV(rows) {
   }).join(',')).join('\r\n');
 }
 
-const loadedScripts = new Map();
-export function loadScript(src, timeoutMs = 15000) {
-  if (loadedScripts.has(src)) return loadedScripts.get(src);
-  const p = new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    const timer = setTimeout(() => { s.remove(); reject(new Error('Timed out loading ' + src)); }, timeoutMs);
-    s.src = src; s.async = true; s.crossOrigin = 'anonymous';
-    s.onload = () => { clearTimeout(timer); resolve(); };
-    s.onerror = () => { clearTimeout(timer); s.remove(); reject(new Error('Failed to load ' + src)); };
-    document.head.appendChild(s);
-  });
-  loadedScripts.set(src, p);
-  p.catch(() => loadedScripts.delete(src));
-  return p;
-}
-
-export const lc = (s) => String(s ?? '').trim().toLowerCase();
-export const clean = (s, max = 200) => String(s ?? '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max);
-
-// Resize & compress an image file to a small JPEG data URL (for product images).
-export function compressImage(file, maxSize = 320, quality = 0.72) {
+// Resize & compress an image file to a small JPEG data URL (employee photos).
+export function compressImage(file, maxSize = 320, quality = 0.75) {
   return new Promise((resolve, reject) => {
-    if (!file.type.startsWith('image/')) return reject(new Error('Not an image file'));
+    if (!file.type.startsWith('image/')) return reject(new Error('Please choose an image file.'));
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
@@ -97,11 +79,12 @@ export function compressImage(file, maxSize = 320, quality = 0.72) {
       URL.revokeObjectURL(url);
       resolve(c.toDataURL('image/jpeg', quality));
     };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read image')); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read this image.')); };
     img.src = url;
   });
 }
 
 export class AppError extends Error {
+  // `code` is a stable key (e.g. 'invalid_credentials') that the UI translates; `message` is a fallback.
   constructor(message, code = 'APP') { super(message); this.code = code; }
 }

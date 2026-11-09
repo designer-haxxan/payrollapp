@@ -1,29 +1,30 @@
 <!doctype html>
-<html lang="en" data-bs-theme="light">
+<html lang="en" data-bs-theme="light" dir="ltr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Offline-first point of sale with sales, purchases, stock, accounts and reports.">
+  <meta name="description" content="Payroll in English and Urdu: employees, Excel-style monthly attendance, salaries and payslips. Works offline.">
   <meta name="theme-color" content="#4f46e5">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self' https://eposwala.com https://cdn.jsdelivr.net; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; img-src 'self' data: blob:; connect-src 'self' https://eposwala.com https://cdn.jsdelivr.net; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="SaleAPP POS">
+  <meta name="apple-mobile-web-app-title" content="Payroll">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link id="bs-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.1.0/index.css">
   <link rel="stylesheet" href="css/app.css">
-  <title>SaleAPP POS</title>
+  <script src="js/core/early.js"></script>
+  <title>Payroll · تنخواہ</title>
 </head>
 <body>
   <!-- Splash / loading screen -->
   <div id="splash">
     <div class="splash-logo"><img src="icons/icon-192.png" alt=""></div>
-    <div class="splash-name mt-3">SaleAPP POS</div>
+    <div class="splash-name" data-i18n="app.name">Payroll</div>
     <div class="splash-bar" role="status"><span class="visually-hidden">Loading</span></div>
     <div id="splash-error" class="text-danger small mt-3 px-4 text-center"></div>
   </div>
@@ -36,74 +37,99 @@
         <section class="auth-hero">
           <div class="brand-row">
             <div class="brand-mark"><img src="icons/icon-192.png" alt=""></div>
-            <div><div class="name">SaleAPP POS</div><div class="tag">Point of Sale · Inventory · Accounts</div></div>
+            <div class="min-w-0">
+              <div class="name" data-i18n="app.name">Payroll</div>
+              <div class="tag" data-i18n="app.tagline">Employees · Attendance · Salary</div>
+            </div>
+            <button type="button" class="btn btn-sm btn-lang lang-toggle ms-auto" data-lang="ur">اردو</button>
           </div>
-          <h1>Run your whole business <span class="grad">from one app.</span></h1>
-          <p class="lead-sm">Sell, buy, track stock and keep your accounts — for any shop, wholesaler or distributor. Works even without internet.</p>
+          <h1 class="auth-h1"><span data-i18n="login.h1a">Run your payroll</span> <span class="grad" data-i18n="login.h1b">from one place.</span></h1>
+          <p class="lead-sm" data-i18n="login.lead">Add employees, mark attendance month by month and pay salaries.</p>
           <ul class="feature-chips">
-            <li><i class="bi bi-wifi-off"></i>Works offline</li>
-            <li><i class="bi bi-box-seam"></i>Inventory</li>
-            <li><i class="bi bi-journal-check"></i>Accounts &amp; ledgers</li>
-            <li><i class="bi bi-upc-scan"></i>Barcode</li>
-            <li><i class="bi bi-printer"></i>Bluetooth receipts</li>
-            <li><i class="bi bi-translate"></i><span class="ur-chip">اردو رسید</span></li>
+            <li><i class="bi bi-wifi-off"></i><span data-i18n="login.chip.offline">Works offline</span></li>
+            <li><i class="bi bi-grid-3x3-gap"></i><span data-i18n="login.chip.sheet">Excel-style attendance</span></li>
+            <li><i class="bi bi-receipt"></i><span data-i18n="login.chip.slips">Printable payslips</span></li>
+            <li><i class="bi bi-translate"></i><span data-i18n="login.chip.bilingual">English &amp; اردو</span></li>
           </ul>
           <div class="hero-art" aria-hidden="true">
             <svg viewBox="0 0 520 330" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <linearGradient id="hg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".22"/><stop offset="1" stop-color="#ffffff" stop-opacity=".06"/></linearGradient>
-                <linearGradient id="hg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a5b4fc"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
-                <linearGradient id="hg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0abfc"/><stop offset="1" stop-color="#c026d3"/></linearGradient>
+                <linearGradient id="hg-sheet" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".30"/><stop offset="1" stop-color="#ffffff" stop-opacity=".10"/></linearGradient>
+                <linearGradient id="hg-bar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
+                <linearGradient id="hg-coin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
               </defs>
+              <!-- attendance sheet -->
               <g class="float-a">
-                <rect x="40" y="30" width="330" height="220" rx="22" fill="url(#hg1)" stroke="rgba(255,255,255,.25)"/>
-                <circle cx="66" cy="54" r="5" fill="#f87171"/><circle cx="82" cy="54" r="5" fill="#fbbf24"/><circle cx="98" cy="54" r="5" fill="#34d399"/>
-                <rect x="64" y="78" width="120" height="12" rx="6" fill="rgba(255,255,255,.55)"/>
-                <rect x="64" y="98" width="80" height="22" rx="8" fill="#fff"/>
-                <rect class="bar" x="70"  y="170" width="26" height="54"  rx="6" fill="url(#hg2)" style="animation-delay:.1s"/>
-                <rect class="bar" x="110" y="150" width="26" height="74"  rx="6" fill="url(#hg2)" style="animation-delay:.2s"/>
-                <rect class="bar" x="150" y="180" width="26" height="44"  rx="6" fill="url(#hg2)" style="animation-delay:.3s"/>
-                <rect class="bar" x="190" y="130" width="26" height="94"  rx="6" fill="url(#hg2)" style="animation-delay:.4s"/>
-                <rect class="bar" x="230" y="145" width="26" height="79"  rx="6" fill="url(#hg2)" style="animation-delay:.5s"/>
-                <rect class="bar" x="270" y="110" width="26" height="114" rx="6" fill="url(#hg3)" style="animation-delay:.6s"/>
-                <rect class="bar" x="310" y="125" width="26" height="99"  rx="6" fill="url(#hg2)" style="animation-delay:.7s"/>
+                <rect x="28" y="40" width="300" height="236" rx="22" fill="url(#hg-sheet)" stroke="rgba(255,255,255,.35)"/>
+                <g class="cells">
+                  <rect class="cell c-p" x="48"  y="66"  width="34" height="30" rx="8" style="--d:0s"/>
+                  <rect class="cell c-p" x="90"  y="66"  width="34" height="30" rx="8" style="--d:.1s"/>
+                  <rect class="cell c-a" x="132" y="66"  width="34" height="30" rx="8" style="--d:.2s"/>
+                  <rect class="cell c-p" x="174" y="66"  width="34" height="30" rx="8" style="--d:.3s"/>
+                  <rect class="cell c-h" x="216" y="66"  width="34" height="30" rx="8" style="--d:.4s"/>
+                  <rect class="cell c-p" x="258" y="66"  width="34" height="30" rx="8" style="--d:.5s"/>
+                  <rect class="cell c-l" x="48"  y="104" width="34" height="30" rx="8" style="--d:.6s"/>
+                  <rect class="cell c-p" x="90"  y="104" width="34" height="30" rx="8" style="--d:.7s"/>
+                  <rect class="cell c-p" x="132" y="104" width="34" height="30" rx="8" style="--d:.8s"/>
+                  <rect class="cell c-p" x="174" y="104" width="34" height="30" rx="8" style="--d:.9s"/>
+                  <rect class="cell c-a" x="216" y="104" width="34" height="30" rx="8" style="--d:1s"/>
+                  <rect class="cell c-p" x="258" y="104" width="34" height="30" rx="8" style="--d:1.1s"/>
+                  <rect class="cell c-p" x="48"  y="142" width="34" height="30" rx="8" style="--d:1.2s"/>
+                  <rect class="cell c-h" x="90"  y="142" width="34" height="30" rx="8" style="--d:1.3s"/>
+                  <rect class="cell c-p" x="132" y="142" width="34" height="30" rx="8" style="--d:1.4s"/>
+                  <rect class="cell c-p" x="174" y="142" width="34" height="30" rx="8" style="--d:1.5s"/>
+                  <rect class="cell c-p" x="216" y="142" width="34" height="30" rx="8" style="--d:1.6s"/>
+                  <rect class="cell c-l" x="258" y="142" width="34" height="30" rx="8" style="--d:1.7s"/>
+                </g>
+                <rect x="48" y="196" width="244" height="10" rx="5" fill="rgba(255,255,255,.45)"/>
+                <rect x="48" y="216" width="170" height="10" rx="5" fill="rgba(255,255,255,.30)"/>
+                <rect x="48" y="236" width="206" height="10" rx="5" fill="rgba(255,255,255,.22)"/>
               </g>
+              <!-- payslip -->
               <g class="float-b">
-                <path d="M392 70 h96 a10 10 0 0 1 10 10 v170 l-12 -8 l-12 8 l-12 -8 l-12 8 l-12 -8 l-12 8 l-12 -8 l-12 8 l-12 -8 V80 a10 10 0 0 1 10 -10z" fill="#fff"/>
-                <rect x="410" y="92" width="64" height="9" rx="4.5" fill="#6366f1"/>
-                <rect x="404" y="114" width="76" height="6" rx="3" fill="#e5e7eb"/><rect x="404" y="128" width="58" height="6" rx="3" fill="#e5e7eb"/>
-                <rect x="404" y="142" width="70" height="6" rx="3" fill="#e5e7eb"/><rect x="404" y="156" width="48" height="6" rx="3" fill="#e5e7eb"/>
-                <rect x="404" y="178" width="76" height="2" fill="#c7d2fe"/>
-                <rect x="404" y="190" width="40" height="10" rx="5" fill="#111827"/><rect x="452" y="190" width="28" height="10" rx="5" fill="#16a34a"/>
-                <g transform="translate(410 208)"><rect width="2" height="18" fill="#111827"/><rect x="5" width="1" height="18" fill="#111827"/><rect x="9" width="3" height="18" fill="#111827"/><rect x="15" width="1" height="18" fill="#111827"/><rect x="19" width="2" height="18" fill="#111827"/><rect x="24" width="1" height="18" fill="#111827"/><rect x="28" width="3" height="18" fill="#111827"/><rect x="34" width="2" height="18" fill="#111827"/><rect x="39" width="1" height="18" fill="#111827"/><rect x="43" width="3" height="18" fill="#111827"/><rect x="49" width="2" height="18" fill="#111827"/><rect x="54" width="1" height="18" fill="#111827"/><rect x="58" width="3" height="18" fill="#111827"/></g>
+                <rect x="318" y="96" width="176" height="176" rx="18" fill="#fff"/>
+                <rect x="336" y="116" width="70" height="10" rx="5" fill="#4f46e5"/>
+                <rect x="336" y="140" width="140" height="6" rx="3" fill="#e5e7eb"/>
+                <rect x="336" y="154" width="112" height="6" rx="3" fill="#e5e7eb"/>
+                <rect x="336" y="168" width="128" height="6" rx="3" fill="#e5e7eb"/>
+                <rect x="336" y="190" width="140" height="2" fill="#c7d2fe"/>
+                <rect x="336" y="206" width="54" height="12" rx="6" fill="#111827"/>
+                <rect x="400" y="204" width="76" height="16" rx="8" fill="#16a34a" class="pulse"/>
               </g>
-              <g class="float-b"><circle cx="34" cy="272" r="26" fill="#fbbf24"/><circle cx="34" cy="272" r="18" fill="none" stroke="#fde68a" stroke-width="3"/><text x="34" y="279" text-anchor="middle" font-size="18" font-weight="800" fill="#92400e">Rs</text></g>
-              <g class="float-a"><rect x="300" y="262" width="62" height="50" rx="8" fill="#22d3ee"/><path d="M300 278 h62" stroke="#0e7490" stroke-width="3"/><rect x="322" y="262" width="18" height="16" fill="#67e8f9"/></g>
+              <!-- coin -->
+              <g class="float-a"><circle cx="330" cy="290" r="26" fill="url(#hg-coin)"/><circle cx="330" cy="290" r="18" fill="none" stroke="#fde68a" stroke-width="3"/><text x="330" y="297" text-anchor="middle" font-size="17" font-weight="800" fill="#92400e">Rs</text></g>
+              <!-- bar chart -->
+              <g class="bars">
+                <rect class="bar" x="410" y="236" width="18" height="50" rx="5" fill="url(#hg-bar)" style="--d:.2s"/>
+                <rect class="bar" x="434" y="222" width="18" height="64" rx="5" fill="url(#hg-bar)" style="--d:.35s"/>
+                <rect class="bar" x="458" y="206" width="18" height="80" rx="5" fill="url(#hg-bar)" style="--d:.5s"/>
+                <rect class="bar" x="482" y="192" width="18" height="94" rx="5" fill="url(#hg-bar)" style="--d:.65s"/>
+              </g>
             </svg>
           </div>
         </section>
 
         <section class="auth-card" aria-labelledby="login-title">
-          <h2 id="login-title">Welcome back</h2>
-          <div class="sub">Sign in to your shop to continue</div>
+          <h2 id="login-title" data-i18n="login.title">Welcome back</h2>
+          <div class="sub" data-i18n="login.sub">Sign in to manage your payroll</div>
           <div id="login-notice" class="alert alert-warning small d-none"></div>
           <form id="login-form" novalidate>
             <div class="field">
               <input type="text" id="login-username" name="username" placeholder=" " autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
               <i class="bi bi-person lead-icon"></i>
-              <label for="login-username">Username</label>
+              <label for="login-username" data-i18n="login.user">Username</label>
             </div>
             <div class="field">
               <input type="password" id="login-password" name="password" placeholder=" " autocomplete="current-password" required>
               <i class="bi bi-lock lead-icon"></i>
-              <label for="login-password">Password</label>
-              <button type="button" class="btn btn-link field-action" id="toggle-pw" aria-label="Show password"><i class="bi bi-eye"></i></button>
+              <label for="login-password" data-i18n="login.pass">Password</label>
+              <button type="button" class="btn btn-link field-action" id="toggle-pw" data-i18n-attr="aria-label:login.showPw"><i class="bi bi-eye"></i></button>
             </div>
             <div id="login-error" class="alert alert-danger py-2 small d-none"></div>
-            <button type="submit" class="btn btn-grad btn-login w-100" id="login-btn"><span>Sign in</span><i class="bi bi-arrow-right"></i></button>
+            <button type="submit" class="btn btn-grad btn-login w-100" id="login-btn"><span data-i18n="login.submit">Sign in</span><i class="bi bi-arrow-right"></i></button>
           </form>
           <div class="auth-foot" id="login-conn"></div>
-          <div class="text-center small mt-2" style="color:#8a8fa3">Internet is needed to sign in. After that the app works offline.</div>
+          <div class="auth-note" data-i18n="login.note">Internet is needed to sign in. After that the app works offline.</div>
         </section>
       </div>
     </div>
@@ -112,50 +138,55 @@
   <!-- Application -->
   <div id="view-app" class="d-none">
     <aside id="sidebar" class="d-none d-lg-flex flex-column">
-      <div class="sidebar-brand"><div class="logo"><img src="icons/icon-192.png" alt=""></div> <span id="brand-name">SaleAPP POS</span></div>
+      <div class="sidebar-brand">
+        <div class="logo"><img src="icons/icon-192.png" alt=""></div>
+        <div class="min-w-0">
+          <div id="brand-name" class="brand-name text-truncate">Payroll</div>
+          <div id="brand-sub" class="brand-sub text-truncate"></div>
+        </div>
+      </div>
       <nav class="nav flex-column flex-grow-1 overflow-auto nav-menu" aria-label="Main"></nav>
+      <div class="sidebar-foot small">v1.0.0</div>
     </aside>
     <div class="app-main">
       <header class="app-topbar">
-        <button class="btn btn-link text-body d-lg-none px-1" data-bs-toggle="offcanvas" data-bs-target="#menu-offcanvas" aria-label="Menu"><i class="bi bi-list fs-4"></i></button>
-        <div class="fw-semibold text-truncate flex-grow-1" id="topbar-title">Dashboard</div>
-        <span id="conn-badge" class="badge rounded-pill conn-online" title="Connection status"><i class="bi bi-wifi"></i> <span>Online</span></span>
+        <button class="btn btn-icon d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#menu-offcanvas" data-i18n-attr="aria-label:nav.menu"><i class="bi bi-list"></i></button>
+        <div class="topbar-title text-truncate" id="topbar-title">Dashboard</div>
+        <span id="conn-badge" class="badge rounded-pill conn-online"></span>
+        <button type="button" class="btn btn-sm btn-lang lang-toggle" data-lang="ur">اردو</button>
         <div class="dropdown">
-          <button class="avatar-btn ms-1" id="user-avatar" data-bs-toggle="dropdown" aria-label="Account"><i class="bi bi-person"></i></button>
+          <button class="avatar-btn" id="user-avatar" data-bs-toggle="dropdown" data-i18n-attr="aria-label:ui.account" aria-expanded="false"><i class="bi bi-person"></i></button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><div class="dropdown-item-text small"><div class="fw-semibold" id="user-name"></div><div class="text-body-secondary" id="user-role"></div></div></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#/settings"><i class="bi bi-gear me-2"></i>Settings</a></li>
-            <li><button class="dropdown-item d-none" id="install-btn"><i class="bi bi-download me-2"></i>Install app</button></li>
-            <li><button class="dropdown-item text-danger" id="logout-btn"><i class="bi bi-box-arrow-right me-2"></i>Log out</button></li>
+            <li><a class="dropdown-item" href="#/settings"><i class="bi bi-gear me-2"></i><span data-i18n="nav.settings">Settings</span></a></li>
+            <li><button class="dropdown-item d-none" id="install-btn"><i class="bi bi-download me-2"></i><span data-i18n="app.install">Install app</span></button></li>
+            <li><button class="dropdown-item text-danger" id="logout-btn"><i class="bi bi-box-arrow-right me-2"></i><span data-i18n="btn.logout">Log out</span></button></li>
           </ul>
         </div>
       </header>
       <main id="content" tabindex="-1"></main>
     </div>
-    <nav id="bottom-nav" class="d-lg-none" aria-label="Quick navigation">
-      <a href="#/dashboard" data-route="dashboard"><i class="bi bi-house"></i><span>Home</span></a>
-      <a href="#/sales" data-route="sales"><i class="bi bi-receipt"></i><span>Sales</span></a>
-      <a href="#/pos" data-route="pos" class="nav-sell"><i class="bi bi-cart-plus-fill"></i><span>Sell</span></a>
-      <a href="#/products" data-route="products"><i class="bi bi-box-seam"></i><span>Products</span></a>
-      <a href="#" data-bs-toggle="offcanvas" data-bs-target="#menu-offcanvas"><i class="bi bi-grid"></i><span>More</span></a>
+    <nav id="bottom-nav" class="d-lg-none" data-i18n-attr="aria-label:ui.quickNav">
+      <a href="#/dashboard" data-route="dashboard"><i class="bi bi-speedometer2"></i><span data-i18n="nav.dashboard">Dashboard</span></a>
+      <a href="#/employees" data-route="employees"><i class="bi bi-people"></i><span data-i18n="nav.employees">Employees</span></a>
+      <a href="#/payroll" data-route="payroll" class="nav-main"><i class="bi bi-calendar2-week-fill"></i><span data-i18n="nav.payroll">Payroll</span></a>
+      <a href="#" data-bs-toggle="offcanvas" data-bs-target="#menu-offcanvas"><i class="bi bi-grid"></i><span data-i18n="ui.more">More</span></a>
     </nav>
   </div>
 
   <div class="offcanvas offcanvas-start" tabindex="-1" id="menu-offcanvas" aria-labelledby="menu-title">
     <div class="offcanvas-header">
-      <h5 class="offcanvas-title" id="menu-title">Menu</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      <h2 class="offcanvas-title h5" id="menu-title" data-i18n="nav.menu">Menu</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-i18n-attr="aria-label:ui.close"></button>
     </div>
     <div class="offcanvas-body p-0"><nav class="nav flex-column nav-menu" aria-label="Main"></nav></div>
   </div>
 
   <div id="toast-container" class="toast-container position-fixed top-0 start-50 translate-middle-x p-3"></div>
-  <div id="loading-overlay" class="d-none"><div class="bg-body rounded-3 shadow p-3 d-flex align-items-center gap-2"><div class="spinner-border spinner-border-sm text-primary"></div><span class="loading-text">Please wait…</span></div></div>
-  <div id="print-area" aria-hidden="true"></div>
+  <div id="loading-overlay" class="d-none"><div class="loading-card"><div class="spinner-border spinner-border-sm text-primary"></div><span class="loading-text"></span></div></div>
 
   <noscript><div class="alert alert-danger m-3">JavaScript is required to run this application.</div></noscript>
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/core/link-login.js"></script>
   <script type="module" src="js/app.js"></script>

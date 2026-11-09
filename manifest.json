@@ -1,7 +1,7 @@
 {
-  "name": "SaleAPP POS",
-  "short_name": "SaleAPP",
-  "description": "Offline-first point of sale with sales, purchases, stock, accounts and reports.",
+  "name": "Payroll · تنخواہ",
+  "short_name": "Payroll",
+  "description": "Payroll in English and Urdu: employees, Excel-style monthly attendance, salaries and payslips. Works offline.",
   "id": "./index.html",
   "start_url": "./index.html",
   "scope": "./",
@@ -9,6 +9,8 @@
   "orientation": "any",
   "background_color": "#0f0c29",
   "theme_color": "#4f46e5",
+  "lang": "en",
+  "dir": "ltr",
   "categories": ["business", "finance", "productivity"],
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
@@ -16,7 +18,7 @@
     { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "New sale", "url": "./index.html#/pos", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Dashboard", "url": "./index.html#/dashboard", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Payroll sheet", "url": "./index.html#/payroll", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Add employee", "url": "./index.html#/employees/new", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }
